@@ -1,0 +1,43 @@
+name: Atualizar Playlist IPTV
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # roda todo início de hora
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v3
+
+      - name: Instalar dependências
+        run: |
+          sudo apt update
+          sudo apt install -y ffmpeg
+          pip install yt-dlp
+
+      - name: Gerar playlist .m3u
+        run: |
+          echo "#EXTM3U" > playlist.m3u
+          
+          # TV Pernambuco
+          echo "#EXTINF:-1 tvg-logo=\"https://i.imgur.com/XXXXX.png\" group-title=\"Brasil\",TV Pernambuco" >> playlist.m3u
+          yt-dlp -f 96 -g "https://www.youtube.com/watch?v=_WwYYjGZn-I" >> playlist.m3u
+          
+          # TV Canção Nova
+          echo "#EXTINF:-1 tvg-logo=\"https://i.imgur.com/YYYYY.png\" group-title=\"Brasil\",TV Canção Nova" >> playlist.m3u
+          yt-dlp -f 96 -g "https://www.youtube.com/@cancaonova/live" >> playlist.m3u
+          
+          # Rede Vida
+          echo "#EXTINF:-1 tvg-logo=\"https://i.imgur.com/ZZZZZ.png\" group-title=\"Brasil\",Rede Vida" >> playlist.m3u
+          yt-dlp -f 96 -g "https://www.youtube.com/@redevida/live" >> playlist.m3u
+
+      - name: Commit e Push
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add playlist.m3u
+          git commit -m "Playlist IPTV atualizada"
+          git push
