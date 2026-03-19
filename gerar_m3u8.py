@@ -52,6 +52,12 @@ CANAIS_YOUTUBE = [
         "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/f/f2/Logotipo_da_TV_Pernambuco.jpg/330px-Logotipo_da_TV_Pernambuco.jpg",
         "grupo": "PE",
     },
+    {
+        "nome": "PREF TV CARUARU",
+        "url": "https://www.youtube.com/@preftvof/live",
+        "logo": "https://yt3.googleusercontent.com/fREpAt4-Q4eR6W_lI1NlS-c7qQ8G-1X8-oZ-iE7vX3-F-P-E-S-T-A-D-O-R-A-S=s160-c-k-c0x00ffffff-no-rj",
+        "grupo": "PE",
+    },
 ]
 
 ARQUIVO_BASE = "playlist_base.m3u"
