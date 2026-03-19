@@ -24,31 +24,31 @@ if sys.platform == "win32":
 CANAIS_YOUTUBE = [
     {
         "nome": "TV Cancao Nova",
-        "url": "https://www.youtube.com/watch?v=zSN0ospdIaE",
+        "url": "https://www.youtube.com/@cancaonovaplay/live",
         "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/3/3f/Logotipo_da_TV_Can%C3%A7%C3%A3o_Nova.png/330px-Logotipo_da_TV_Can%C3%A7%C3%A3o_Nova.png",
         "grupo": "Catolico",
     },
     {
         "nome": "TV Jornal Caruaru",
-        "url": "https://www.youtube.com/watch?v=IAMfZy0-eZs",
+        "url": "https://www.youtube.com/@TVJornalInterior/live",
         "logo": "https://imgmxa.net/sbt.png",
         "grupo": "PE",
     },
     {
         "nome": "Canal Rural",
-        "url": "https://www.youtube.com/watch?v=hmUCjG_P0xg",
+        "url": "https://www.youtube.com/@canalrural/live",
         "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/a/a3/Canal_Rural.png/300px-Canal_Rural.png",
         "grupo": "Variedades",
     },
     {
-        "nome": "Rede Vida Mais",
-        "url": "https://www.youtube.com/watch?v=YYJSUSHAiHw",
+        "nome": "Rede Vida",
+        "url": "https://www.youtube.com/@tvredevida.aovivo/live",
         "logo": "https://redevida.com.br/wp-content/uploads/2024/07/logo-redevida.png.webp",
         "grupo": "Catolico",
     },
     {
         "nome": "TV Pernambuco",
-        "url": "https://www.youtube.com/watch?v=qgVz7FESmNE",
+        "url": "https://www.youtube.com/@tvpernambuco/live",
         "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/f/f2/Logotipo_da_TV_Pernambuco.jpg/330px-Logotipo_da_TV_Pernambuco.jpg",
         "grupo": "PE",
     },
@@ -90,16 +90,16 @@ def _rodar_ytdlp(url, resultado_container):
             creationflags=flags,
         )
         resultado_container["proc"] = proc
-        stdout, stderr = proc.communicate()
-        resultado_container["stdout"] = stdout.decode("utf-8", errors="replace")
-        resultado_container["stderr"] = stderr.decode("utf-8", errors="replace")
+        stdout_bytes, stderr_bytes = proc.communicate()
+        resultado_container["stdout"] = stdout_bytes.decode("utf-8", errors="replace") if (stdout_bytes is not None) else ""
+        resultado_container["stderr"] = stderr_bytes.decode("utf-8", errors="replace") if (stderr_bytes is not None) else ""
         resultado_container["returncode"] = proc.returncode
     except FileNotFoundError:
         resultado_container["erro_fatal"] = True
 
 
 def obter_url_m3u8(youtube_url):
-    """Extrai URL de stream com timeout."""
+    """Extrai URL de stream com timeout. Retorna (url, erro)."""
     container = {"proc": None, "stdout": "", "stderr": "", "returncode": -1, "erro_fatal": False}
     t = threading.Thread(target=_rodar_ytdlp, args=(youtube_url, container), daemon=True)
     t.start()
@@ -110,16 +110,26 @@ def obter_url_m3u8(youtube_url):
         if proc:
             try: proc.kill()
             except Exception: pass
-        return None
+        return None, f"Timeout de {TIMEOUT_CANAL}s"
 
     if container["erro_fatal"]:
-        return None
+        return None, "yt-dlp nao encontrado"
 
-    for linha in container["stdout"].strip().splitlines():
+    stdout = container.get("stdout", "").strip()
+    stderr = container.get("stderr", "").strip()
+
+    for linha in stdout.splitlines():
         linha = linha.strip()
         if linha.startswith("http"):
-            return linha
-    return None
+            return linha, None
+
+    # Se nao achou URL, retorna o erro simplificado do stderr
+    erro_msg = "Nao encontrado"
+    if "unavailable" in stderr.lower(): erro_msg = "Indisponivel"
+    elif "live" in stderr.lower() and "not" in stderr.lower(): erro_msg = "Sem live ativa"
+    elif stderr: erro_msg = stderr.splitlines()[0][:60] # Pega a primeira linha do erro
+
+    return None, erro_msg
 
 
 def gerar_playlist():
@@ -130,10 +140,14 @@ def gerar_playlist():
     caminho_base = os.path.join(os.path.dirname(os.path.abspath(__file__)), ARQUIVO_BASE)
     if os.path.exists(caminho_base):
         print(f"  [BASE] Lendo {ARQUIVO_BASE}...")
-        with open(caminho_base, "r", encoding="utf-8") as f:
-            linhas = f.readlines()
-            if not linhas[-1].endswith("\n"):
-                linhas[-1] += "\n"
+        try:
+            with open(caminho_base, "r", encoding="utf-8") as f:
+                linhas = f.readlines()
+                if linhas and not linhas[-1].endswith("\n"):
+                    linhas[-1] += "\n"
+        except Exception as e:
+            print(f"  [ERRO] Falha ao ler base: {e}")
+            linhas = ["#EXTM3U\n"]
     else:
         print(f"  [AVISO] Arquivo {ARQUIVO_BASE} nao encontrado. Criando apenas com YouTube.")
         linhas = ["#EXTM3U\n"]
@@ -148,7 +162,7 @@ def gerar_playlist():
         grupo = canal.get("grupo", "YouTube")
 
         print(f"    --> {nome} ... ", end="", flush=True)
-        url_stream = obter_url_m3u8(url_yt)
+        url_stream, erro = obter_url_m3u8(url_yt)
 
         if url_stream:
             extinf = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{grupo}",{nome}\n'
@@ -157,7 +171,7 @@ def gerar_playlist():
             print("[OK]")
             atualizados += 1
         else:
-            print("[FALHOU]")
+            print(f"[FALHOU: {erro}]")
 
     # 3. Salva o resultado
     caminho_saida = os.path.join(os.path.dirname(os.path.abspath(__file__)), ARQUIVO_SAIDA)
