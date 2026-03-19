@@ -24,7 +24,7 @@ if sys.platform == "win32":
 CANAIS_YOUTUBE = [
     {
         "nome": "TV Cancao Nova",
-        "url": "https://www.youtube.com/@cancaonovaplay/live",
+        "url": "https://www.youtube.com/watch?v=zSN0ospdIaE",
         "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/3/3f/Logotipo_da_TV_Can%C3%A7%C3%A3o_Nova.png/330px-Logotipo_da_TV_Can%C3%A7%C3%A3o_Nova.png",
         "grupo": "Catolico",
     },
@@ -126,7 +126,8 @@ def obter_url_m3u8(youtube_url):
     # Se nao achou URL, retorna o erro simplificado do stderr
     erro_msg = "Nao encontrado"
     if "unavailable" in stderr.lower(): erro_msg = "Indisponivel"
-    elif "live" in stderr.lower() and "not" in stderr.lower(): erro_msg = "Sem live ativa"
+    elif "live" in stderr.lower() and "not" in stderr.lower(): erro_msg = "Offline"
+    elif "begin in" in stderr.lower(): erro_msg = "Programada"
     elif stderr: erro_msg = stderr.splitlines()[0][:60] # Pega a primeira linha do erro
 
     return None, erro_msg
@@ -170,6 +171,8 @@ def gerar_playlist():
             linhas.append(url_stream + "\n")
             print("[OK]")
             atualizados += 1
+        elif erro == "Offline" or erro == "Programada":
+            print(f"[{erro}]")
         else:
             print(f"[FALHOU: {erro}]")
 
