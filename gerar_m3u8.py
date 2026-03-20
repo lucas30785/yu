@@ -90,10 +90,9 @@ CANAIS_YOUTUBE = [
     },
     {
         "nome": "CNN Brasil Money",
-        "url": "https://www.youtube.com/@cnnbrmoney/streams",
+        "url": "https://www.youtube.com/@cnnbrmoney/live",
         "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/CNN_Brasil.svg/330px-CNN_Brasil.svg.png",
         "grupo": "Financeiro",
-        "multi": True,
     },
 ]
 
