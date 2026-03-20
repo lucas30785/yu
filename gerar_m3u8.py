@@ -91,6 +91,12 @@ CANAIS_YOUTUBE = [
         "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/SBT_logo.svg/330px-SBT_logo.svg.png",
         "grupo": "ABERTO",
     },
+    {
+        "nome": "TV Nazare",
+        "url": "https://www.youtube.com/@RedeNazareDeComunicacao/live",
+        "logo": "https://yt3.googleusercontent.com/ytc/AIdro_n_D_v_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_=s160-c-k-c0x00ffffff-no-rj",
+        "grupo": "Catolico",
+    },
 ]
 
 ARQUIVO_BASE = "playlist_base.m3u"
