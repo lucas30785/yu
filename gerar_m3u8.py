@@ -209,7 +209,12 @@ def gerar_playlist():
                 linhas.append(f"{url_stream}\n")
                 print("[OK]")
             else:
-                print(f"[FALHOU: {erro}]")
+                # Fallback: Mantém o canal com link original do YouTube se a resolução falhar
+                url_original = canal.get("url", "")
+                linhas.append(f'#EXTINF:-1 tvg-logo="{logo}" group-title="{grupo}",{nome_exibicao} [OFFLINE]\n')
+                linhas.append(f"{url_original}\n")
+                print(f"[FALHOU: {erro}] - Mantido link original")
+
 
     # 3. Salvar
     c_saida = os.path.join(dir_p, ARQUIVO_SAIDA)
