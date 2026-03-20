@@ -88,7 +88,15 @@ CANAIS_YOUTUBE = [
         "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/SBT_logo.svg/330px-SBT_logo.svg.png",
         "grupo": "ABERTO",
     },
+    {
+        "nome": "CNN Brasil Money",
+        "url": "https://www.youtube.com/@cnnbrmoney/streams",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/CNN_Brasil.svg/330px-CNN_Brasil.svg.png",
+        "grupo": "Financeiro",
+        "multi": True,
+    },
 ]
+
 
 ARQUIVO_BASE = "playlist_base.m3u"
 ARQUIVO_SAIDA = "playlist.m3u"
