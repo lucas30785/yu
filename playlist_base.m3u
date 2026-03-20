@@ -158,3 +158,6 @@ https://v-us-01.wisestream.io/memfs/e4ade538-7924-4359-81ef-b9d4dd229e91.m3u8
  
 #EXTINF:-1 tvg-id="TV Brasil Internacional" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/TV_Brasil_logo_2023.svg/330px-TV_Brasil_logo_2023.svg.png" group-title="ABERTO",TV BRASIL INTERNACIONAL
 https://tvbrasilinternacional-stream.ebc.com.br/index.m3u8
+
+#EXTINF:-1 tvg-id="TV Nazaré" tvg-logo="https://fundacaonazare.com.br/wp-content/uploads/2023/10/logo-rede-nazare.png" group-title="Catolico",TV Nazaré
+https://realmsweb.ip.tv/hls/tvnazare-p/index.m3u8

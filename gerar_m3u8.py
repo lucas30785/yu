@@ -92,9 +92,9 @@ CANAIS_YOUTUBE = [
         "grupo": "ABERTO",
     },
     {
-        "nome": "TV Nazare",
-        "url": "https://www.youtube.com/@RedeNazareDeComunicacao/live",
-        "logo": "https://yt3.googleusercontent.com/ytc/AIdro_n_D_v_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_=s160-c-k-c0x00ffffff-no-rj",
+        "nome": "TV Nazaré",
+        "url": "https://www.youtube.com/@redenazare/live",
+        "logo": "https://fundacaonazare.com.br/wp-content/uploads/2023/10/logo-rede-nazare.png",
         "grupo": "Catolico",
     },
 ]
