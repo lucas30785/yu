@@ -48,61 +48,12 @@ CANAIS_YOUTUBE = [
         "logo": "https://redevida.com.br/wp-content/uploads/2024/07/logo-redevida.png.webp",
         "grupo": "Catolico",
     },
-    {
-        "nome": "Rede Vida Educacao",
-        "url": "https://www.youtube.com/@redevidaeducacao/live",
-        "logo": "https://redevida.com.br/wp-content/uploads/2024/07/logo-redevida.png.webp",
-        "grupo": "Educativo",
-    },
-    {
-        "nome": "TV Pernambuco",
-        "url": "https://www.youtube.com/@tvpernambuco/live",
-        "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/f/f2/Logotipo_da_TV_Pernambuco.jpg/330px-Logotipo_da_TV_Pernambuco.jpg",
-        "grupo": "PE",
-    },
-    {
-        "nome": "TV Justica",
-        "url": "https://www.youtube.com/@RadioeTVJustica/streams",
-        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Logotipo_da_TV_Justi%C3%A7a.png/300px-Logotipo_da_TV_Justi%C3%A7a.png",
-        "grupo": "Justiça",
-        "multi": True,
-    },
-    {
-        "nome": "PREF TV CARUARU",
-        "url": "https://www.youtube.com/@preftvof/live",
-        "logo": "https://yt3.googleusercontent.com/fREpAt4-Q4eR6W_lI1NlS-c7qQ8G-1X8-oZ-iE7vX3-F-P-E-S-T-A-D-O-R-A-S=s160-c-k-c0x00ffffff-no-rj",
-        "grupo": "PE",
-    },
-    {
-        "nome": "RedeTV!",
-        "url": "https://www.youtube.com/@redetv/live",
-        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/RedeTV%21_logo.svg/330px-RedeTV%21_logo.svg.png",
-        "grupo": "ABERTO",
-    },
-    {
-        "nome": "BAND",
-        "url": "https://www.youtube.com/@bandjornalismo/live",
-        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Band_logo.svg/330px-Band_logo.svg.png",
-        "grupo": "ABERTO",
-    },
-    {
-        "nome": "SBT",
-        "url": "https://www.youtube.com/@SBTonline/live",
-        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/SBT_logo.svg/330px-SBT_logo.svg.png",
-        "grupo": "ABERTO",
-    },
-    {
-        "nome": "TV Nazaré",
-        "url": "https://www.youtube.com/@redenazare/live",
-        "logo": "https://fundacaonazare.com.br/wp-content/uploads/2023/10/logo-rede-nazare.png",
-        "grupo": "Catolico",
-    },
 ]
 
 ARQUIVO_BASE = "playlist_base.m3u"
 ARQUIVO_SAIDA = "playlist.m3u"
 INTERVALO_SEGUNDOS = 3600   # Atualiza a cada 1 hora
-TIMEOUT_CANAL = 45          # Aumentado para lidar com cookies e multi-live
+TIMEOUT_CANAL = 30          # Tempo maximo por canal
 # ============================================================
 
 
