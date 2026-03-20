@@ -17,6 +17,8 @@ if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
+IS_CI = os.environ.get("GITHUB_ACTIONS") == "true"
+
 # ============================================================
 # CONFIGURACAO
 # ============================================================
@@ -36,7 +38,7 @@ CANAIS_YOUTUBE = [
     },
     {
         "nome": "Canal Rural",
-        "url": "https://www.youtube.com/@canalrural/live",
+        "url": "https://www.youtube.com/watch?v=hmUCjG_P0xg",
         "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/a/a3/Canal_Rural.png/300px-Canal_Rural.png",
         "grupo": "Variedades",
     },
@@ -105,8 +107,6 @@ def _rodar_ytdlp(url, resultado_container, extract_all=False):
         if sys.platform == "win32":
             flags = subprocess.CREATE_NO_WINDOW
         
-        is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
-        
         base_cmd = [
             "yt-dlp",
             "--no-update",
@@ -116,6 +116,14 @@ def _rodar_ytdlp(url, resultado_container, extract_all=False):
             "--retries", "1",
             "--fragment-retries", "1",
         ]
+
+        if IS_CI:
+            # Tenta logar a versao do yt-dlp no CI
+            try:
+                v_proc = subprocess.run(["yt-dlp", "--version"], capture_output=True, text=True)
+                if v_proc.returncode == 0:
+                    print(f"  [DEBUG] yt-dlp version: {v_proc.stdout.strip()}")
+            except: pass
         
         # Tenta spoofing de cliente variado para evitar bloqueios
         if not extract_all:
@@ -143,7 +151,7 @@ def _rodar_ytdlp(url, resultado_container, extract_all=False):
         caminho_cookies = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies.txt")
         if os.path.exists(caminho_cookies):
             cmd_cookies = ["--cookies", caminho_cookies]
-        elif not is_ci:
+        elif not IS_CI:
             # So tenta cookies do navegador localmente se nao houver cookies.txt
             cmd_cookies = ["--cookies-from-browser", "chrome"]
 
@@ -298,10 +306,11 @@ def gerar_playlist():
 
     print(f"\n  Arquivo gerado: {ARQUIVO_SAIDA}")
     print(f"  YouTube: {atualizados}/{len(CANAIS_YOUTUBE)} canais OK")
+    if IS_CI:
+        print(f"  [CI] Processo concluido. Pronto para commit.")
 
 
 def main():
-    is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
     rodada = 1
     
     while True:
@@ -311,7 +320,7 @@ def main():
 
         gerar_playlist()
 
-        if is_ci:
+        if IS_CI:
             break
 
         print(f"\n  Proxima atualizacao em {INTERVALO_SEGUNDOS//60} minutos.")
