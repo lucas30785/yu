@@ -94,6 +94,48 @@ CANAIS_YOUTUBE = [
         "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/CNN_Brasil.svg/330px-CNN_Brasil.svg.png",
         "grupo": "Financeiro",
     },
+    {
+        "nome": "TV Aparecida",
+        "url": "https://www.youtube.com/@tvaparecida/live",
+        "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/1/1e/Logotipo_da_TV_Aparecida.png/330px-Logotipo_da_TV_Aparecida.png",
+        "grupo": "Catolico",
+    },
+    {
+        "nome": "Rede Vida",
+        "url": "https://www.youtube.com/@tvredevida.aovivo/live",
+        "logo": "https://redevida.com.br/wp-content/uploads/2024/07/logo-redevida.png.webp",
+        "grupo": "Catolico",
+    },
+    {
+        "nome": "TV Pai Eterno",
+        "url": "https://www.youtube.com/@paieterno/live",
+        "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/7/7c/Logotipo_TV_Pai_Eterno.png/330px-Logotipo_TV_Pai_Eterno.png",
+        "grupo": "Catolico",
+    },
+    {
+        "nome": "TV Horizonte",
+        "url": "https://www.youtube.com/@tvhorizonte.oficial/live",
+        "logo": "https://tvhorizonte.com.br/wp-content/uploads/2024/12/logo-rede-catedral.png",
+        "grupo": "Catolico",
+    },
+    {
+        "nome": "Vatican News",
+        "url": "https://www.youtube.com/@VaticanNewsPT/live",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Vatican_News.svg/330px-Vatican_News.svg.png",
+        "grupo": "Catolico",
+    },
+    {
+        "nome": "Canal Agroplus",
+        "url": "https://www.youtube.com/@canalagroplus/live",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Canal_Rural.png/300px-Canal_Rural.png",
+        "grupo": "Variedades",
+    },
+    {
+        "nome": "TV Gazeta",
+        "url": "https://www.youtube.com/@tvgazetaoficial/live",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/TV_Gazeta.svg/330px-TV_Gazeta.svg.png",
+        "grupo": "ABERTO",
+    },
 ]
 
 
