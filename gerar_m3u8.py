@@ -155,6 +155,13 @@ CANAIS_YOUTUBE = [
         "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/TV_Gazeta.svg/330px-TV_Gazeta.svg.png",
         "grupo": "ABERTO",
     },
+    {
+        "nome": "XSPORT",
+        "url": "https://www.youtube.com/@xsports.brasil/streams",
+        "logo": "https://yt3.googleusercontent.com/ytc/AIdro_k6V10M-C6qI29L-a6-Q4E-J9k08J73NnQO5yT0d5o=s176-c-k-c0x00ffffff-no-rj",
+        "grupo": "Esportes",
+        "multi": True,
+    },
 ]
 
 
