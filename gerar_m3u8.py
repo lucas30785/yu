@@ -8,7 +8,26 @@ import io
 import subprocess
 import os
 import sys
+import urllib.request
+import random
 from datetime import datetime
+
+WORKING_PROXY = None
+PROXY_LIST = []
+
+def load_proxies():
+    global PROXY_LIST
+    if not PROXY_LIST:
+        print("\n  [PROXY] Baixando lista de proxies gratuitos para desviar do bloqueio...")
+        try:
+            req = urllib.request.Request("https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt")
+            with urllib.request.urlopen(req, timeout=10) as response:
+                PROXY_LIST = [p.strip() for p in response.read().decode('utf-8').splitlines() if p.strip()]
+            random.shuffle(PROXY_LIST)
+            print(f"  [PROXY] {len(PROXY_LIST)} proxies carregados.")
+        except Exception as e:
+            print(f"  [PROXY] Erro ao carregar proxies: {e}")
+            PROXY_LIST = ["ERRO"]
 
 # Fix Windows console encoding
 if sys.platform == "win32":
@@ -144,7 +163,7 @@ ARQUIVO_SAIDA = "playlist.m3u"
 TIMEOUT_CANAL = 40          # Tempo máximo por canal (segundos)
 # ============================================================
 
-def executar_ytdlp(url, extract_all=False):
+def executar_ytdlp(url, extract_all=False, proxy=None):
     """Executa yt-dlp com timeout e tratamento de erros."""
     flags = 0
     if sys.platform == "win32":
@@ -162,7 +181,10 @@ def executar_ytdlp(url, extract_all=False):
     ]
     
     # Spoofing para evitar bloqueios
-    cmd += ["--extractor-args", "youtube:player_client=tv,ios,web"]
+    cmd += ["--extractor-args", "youtube:player_client=android,ios,web_creator,tv"]
+    
+    if proxy:
+        cmd += ["--proxy", f"http://{proxy}"]
     
     if extract_all:
         cmd += ["--flat-playlist", "--print", "title", "--print", "url", url]
@@ -186,13 +208,13 @@ def executar_ytdlp(url, extract_all=False):
     except Exception as e:
         return "", str(e), -1
 
-def obter_urls_live(canal_info):
+def obter_urls_live_core(canal_info, proxy=None):
     """Retorna lista de (nome, url_stream, erro)."""
     nome_original = canal_info.get("nome", "Desconhecido")
     url_yt = canal_info.get("url", "")
     is_multi = canal_info.get("multi", False)
     
-    stdout, stderr, code = executar_ytdlp(url_yt, extract_all=is_multi)
+    stdout, stderr, code = executar_ytdlp(url_yt, extract_all=is_multi, proxy=proxy)
 
     if is_multi:
         resul = []
@@ -203,14 +225,14 @@ def obter_urls_live(canal_info):
             if any(k in titulo.lower() for k in ["ao vivo", "live", "justiça", "rádio"]):
                 if any(x in titulo for x in ["0:", "1:"]): continue 
                 
-                u_stream_out, _, _ = executar_ytdlp(url_video, extract_all=False)
+                u_stream_out, _, _ = executar_ytdlp(url_video, extract_all=False, proxy=proxy)
                 u_stream = u_stream_out.strip()
                 if u_stream.startswith("http"):
                     exibicao = titulo.replace(" - Ao vivo", "").replace(" (AO VIVO)", "").replace(" ao vivo", "")
                     resul.append((f"{nome_original}: {exibicao}", u_stream, None))
         
         if not resul:
-             u_stream_out, _, _ = executar_ytdlp(url_yt, extract_all=False)
+             u_stream_out, _, _ = executar_ytdlp(url_yt, extract_all=False, proxy=proxy)
              u_stream = u_stream_out.strip()
              if u_stream.startswith("http"):
                  return [(nome_original, u_stream, None)]
@@ -226,6 +248,29 @@ def obter_urls_live(canal_info):
     elif "bot" in stderr.lower() or "sign in" in stderr.lower(): erro_msg = "Bloqueio"
     elif "live" in stderr.lower() and "not" in stderr.lower(): erro_msg = "Offline"
     return [(nome_original, None, erro_msg)]
+
+def obter_urls_live(canal_info):
+    global WORKING_PROXY
+    resultados = obter_urls_live_core(canal_info, proxy=WORKING_PROXY)
+    
+    # Se falhou por bloqueio e ainda temos como buscar proxy, tenta proxy
+    if any(r[2] == "Bloqueio" for r in resultados):
+        load_proxies()
+        while PROXY_LIST:
+            cand_proxy = PROXY_LIST.pop(0)
+            if cand_proxy == "ERRO": 
+                break
+            
+            print(f" [TESTANDO PROXY: {cand_proxy}] ", end="", flush=True)
+            res_tentativa = obter_urls_live_core(canal_info, proxy=cand_proxy)
+            
+            if not any(r[2] == "Bloqueio" for r in res_tentativa):
+                WORKING_PROXY = cand_proxy
+                print(f"[FUNCIONOU! Mantendo proxy para proximos canais] ", end="", flush=True)
+                return res_tentativa
+                
+        return resultados
+    return resultados
 
 def gerar_playlist():
     """Gera o arquivo M3U8 final."""
