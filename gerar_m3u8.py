@@ -162,7 +162,7 @@ def executar_ytdlp(url, extract_all=False):
     ]
     
     # Spoofing para evitar bloqueios
-    cmd += ["--extractor-args", "youtube:player_client=android,ios,web_creator,tv"]
+    cmd += ["--extractor-args", "youtube:player_client=tv,ios,web"]
     
     if extract_all:
         cmd += ["--flat-playlist", "--print", "title", "--print", "url", url]
@@ -246,6 +246,8 @@ def gerar_playlist():
 
     # 2. YouTube Dinâmico
     print("  [YOUTUBE] Atualizando links...")
+    sucessos = 0
+    bloqueios = 0
     for canal in CANAIS_YOUTUBE:
         logo = canal.get("logo", "")
         grupo = canal.get("grupo", "YouTube")
@@ -256,8 +258,11 @@ def gerar_playlist():
             if url_stream:
                 linhas.append(f'#EXTINF:-1 tvg-logo="{logo}" group-title="{grupo}",{nome_exibicao}\n')
                 linhas.append(f"{url_stream}\n")
+                sucessos += 1
                 print("[OK]")
             else:
+                if erro == "Bloqueio":
+                    bloqueios += 1
                 # Fallback: Mantém o canal com link original do YouTube se a resolução falhar
                 url_original = canal.get("url", "")
                 linhas.append(f'#EXTINF:-1 tvg-logo="{logo}" group-title="{grupo}",{nome_exibicao} [OFFLINE]\n')
@@ -270,6 +275,15 @@ def gerar_playlist():
     with open(c_saida, "w", encoding="utf-8") as f:
         f.writelines(linhas)
     print(f"\n  [SUCESSO] Playlist gerada: {ARQUIVO_SAIDA}")
+
+    # Escrever keep-alive file para evitar que o GitHub pause a cron
+    with open(os.path.join(dir_p, "last_update.txt"), "w", encoding="utf-8") as f:
+        f.write(datetime.now().isoformat())
+
+    # Se falhou tudo por IP bloqueado, retornar erro para o GitHub Actions tentar outro runner
+    if sucessos == 0 and bloqueios > 0:
+        print("\n  [ERRO FATAL] Todos os canais falharam e houve bloqueios do YouTube. Acionando runner alternativo.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     gerar_playlist()
