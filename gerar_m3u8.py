@@ -18,15 +18,15 @@ PROXY_LIST = []
 def load_proxies():
     global PROXY_LIST
     if not PROXY_LIST:
-        print("\n  [PROXY] Baixando lista de proxies gratuitos para desviar do bloqueio...")
+        print("\n  [PROXY] Baixando lista de proxies Brasileiros para burlar Geoblock...")
         try:
-            req = urllib.request.Request("https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt")
+            req = urllib.request.Request("https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=BR")
             with urllib.request.urlopen(req, timeout=10) as response:
                 PROXY_LIST = [p.strip() for p in response.read().decode('utf-8').splitlines() if p.strip()]
             random.shuffle(PROXY_LIST)
-            print(f"  [PROXY] {len(PROXY_LIST)} proxies carregados.")
+            print(f"  [PROXY] {len(PROXY_LIST)} proxies BR carregados.")
         except Exception as e:
-            print(f"  [PROXY] Erro ao carregar proxies: {e}")
+            print(f"  [PROXY] Erro ao carregar proxies BR: {e}")
             PROXY_LIST = ["ERRO"]
 
 # Fix Windows console encoding
@@ -162,6 +162,34 @@ CANAIS_YOUTUBE = [
         "grupo": "Esportes",
         "multi": True,
     },
+    {
+        "nome": "SportyNet",
+        "url": "https://www.youtube.com/@SportyNetBrasil/streams",
+        "logo": "https://yt3.googleusercontent.com/ytc/AIdro_k6-Oa3eJ3S7X-J3u1Y0_Z5F8h_z0e5c9o9i3z_3X2lXz0=s176-c-k-c0x00ffffff-no-rj",
+        "grupo": "Esportes",
+        "multi": True,
+    },
+    {
+        "nome": "N Sports",
+        "url": "https://www.youtube.com/@NSports/streams",
+        "logo": "https://yt3.googleusercontent.com/ytc/AIdro_k6_6m2x7O-9k7U8H9g2_i8y6p3u2r5_0n3V8V5T9J3_3Y=s176-c-k-c0x00ffffff-no-rj",
+        "grupo": "Esportes",
+        "multi": True,
+    },
+    {
+        "nome": "CazéTV",
+        "url": "https://www.youtube.com/channel/UCZiYbVptd3PVPf4f6eR6UaQ/streams",
+        "logo": "https://yt3.googleusercontent.com/ytc/AIdro_k6_0i9H5B9L7E8s9N2y3b7C8A4d9T0u7_2e8a7N6A5=s176-c-k-c0x00ffffff-no-rj",
+        "grupo": "Esportes",
+        "multi": True,
+    },
+    {
+        "nome": "Canal GOAT",
+        "url": "https://www.youtube.com/@maiscanalgoatbr/streams",
+        "logo": "https://yt3.googleusercontent.com/ytc/AIdro_k4_6X2D8O3R0Q7V5H9L2_U0c9P3A8_8h9e5E7A3_1G=s176-c-k-c0x00ffffff-no-rj",
+        "grupo": "Esportes",
+        "multi": True,
+    },
 ]
 
 
@@ -260,20 +288,20 @@ def obter_urls_live(canal_info):
     global WORKING_PROXY
     resultados = obter_urls_live_core(canal_info, proxy=WORKING_PROXY)
     
-    # Se falhou por bloqueio e ainda temos como buscar proxy, tenta proxy
-    if any(r[2] == "Bloqueio" for r in resultados):
+    # Se falhou por bloqueio ou geolocalizacao, busca proxy BR
+    if any(r[2] in ["Bloqueio", "Indisponivel", "Nao encontrado"] for r in resultados):
         load_proxies()
         while PROXY_LIST:
             cand_proxy = PROXY_LIST.pop(0)
             if cand_proxy == "ERRO": 
                 break
             
-            print(f" [TESTANDO PROXY: {cand_proxy}] ", end="", flush=True)
+            print(f" [TESTANDO PROXY BR: {cand_proxy}] ", end="", flush=True)
             res_tentativa = obter_urls_live_core(canal_info, proxy=cand_proxy)
             
-            if not any(r[2] == "Bloqueio" for r in res_tentativa):
+            if not any(r[2] in ["Bloqueio", "Indisponivel", "Nao encontrado"] for r in res_tentativa):
                 WORKING_PROXY = cand_proxy
-                print(f"[FUNCIONOU! Mantendo proxy para proximos canais] ", end="", flush=True)
+                print(f"[FUNCIONOU! Mantendo proxy BR para proximos canais] ", end="", flush=True)
                 return res_tentativa
                 
         return resultados
