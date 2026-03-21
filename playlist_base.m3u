@@ -61,7 +61,7 @@ https://cdn.live.br1.jmvstream.com/w/LVW-10801/LVW10801_Xvg4R0u57n/playlist.m3u8
 https://video08.logicahost.com.br/portaldatropical02/portaldatropical02/playlist.m3u8
  
 #EXTINF:-1 tvg-id="Band" tvg-logo="https://imgur.com/P3Ldnvp.png" group-title="ABERTO",BAND HD
-https://tv02.zas.media:1936/redetvparana/redetvparana/playlist.m3u8
+https://5b7f3c45ab7c2.streamlock.net/arapuan/ngrp:arapuan_all/playlist.m3u8
 
 #EXTINF:-1 tvg-id="TV Cultura" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Cultura_logo_2013.svg/330px-Cultura_logo_2013.svg.png" group-title="ABERTO",CULTURA HD
 https://player-tvcultura.stream.uol.com.br/live/tvcultura.m3u8
@@ -70,7 +70,7 @@ https://player-tvcultura.stream.uol.com.br/live/tvcultura.m3u8
 https://tvbrasil-stream.ebc.com.br/index.m3u8
  
 #EXTINF:-1 tvg-id="RedeTV!" tvg-logo="https://imgur.com/2vYqKX5.png" group-title="ABERTO",REDE TV
-https://5b7f3c45ab7c2.streamlock.net/arapuan/ngrp:arapuan_all/playlist.m3u8
+https://tv02.zas.media:1936/redetvparana/redetvparana/playlist.m3u8
  
 #EXTINF:-1 tvg-id="Play TV" tvg-logo="https://playtv.com.br/site/wp-content/uploads/2023/07/PlayTV-logo-pequeno-e1700746282386.png" group-title="ABERTO",PlayTV
 https://isaocorp.cloudecast.com/playtv/mono.m3u8
