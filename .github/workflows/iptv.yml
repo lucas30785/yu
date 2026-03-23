@@ -24,6 +24,11 @@ jobs:
           pip install -r requirements.txt
           pip install --upgrade yt-dlp
       - name: Gerar playlist .m3u
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_API_URL: ${{ secrets.AI_API_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+          AI_ENABLED: true
         run: python gerar_m3u8.py
       - name: Commit e Push
         shell: bash
@@ -31,6 +36,7 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add playlist.m3u last_update.txt
+          test -f relatorio_ia.md && git add relatorio_ia.md || true
           git commit -m "Playlist IPTV atualizada (Windows) [Bot]" || echo "Nenhuma alteração"
           git push
 
@@ -51,6 +57,11 @@ jobs:
           pip install -r requirements.txt
           pip install --upgrade yt-dlp
       - name: Gerar playlist .m3u
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_API_URL: ${{ secrets.AI_API_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+          AI_ENABLED: true
         run: python gerar_m3u8.py
       - name: Commit e Push
         shell: bash
@@ -58,6 +69,7 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add playlist.m3u last_update.txt
+          test -f relatorio_ia.md && git add relatorio_ia.md || true
           git commit -m "Playlist IPTV atualizada (macOS) [Bot]" || echo "Nenhuma alteração"
           git push
 
@@ -78,6 +90,11 @@ jobs:
           pip install -r requirements.txt
           pip install --upgrade yt-dlp
       - name: Gerar playlist .m3u
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_API_URL: ${{ secrets.AI_API_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+          AI_ENABLED: true
         run: python gerar_m3u8.py
       - name: Commit e Push
         shell: bash
@@ -85,5 +102,6 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add playlist.m3u last_update.txt
+          test -f relatorio_ia.md && git add relatorio_ia.md || true
           git commit -m "Playlist IPTV atualizada (Ubuntu) [Bot]" || echo "Nenhuma alteração"
           git push

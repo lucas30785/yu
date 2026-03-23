@@ -9,7 +9,10 @@ import subprocess
 import os
 import sys
 import urllib.request
+import urllib.error
+import json
 import random
+import re
 from datetime import datetime
 
 WORKING_PROXY = None
@@ -18,16 +21,49 @@ PROXY_LIST = []
 def load_proxies():
     global PROXY_LIST
     if not PROXY_LIST:
-        print("\n  [PROXY] Baixando lista de proxies Brasileiros para burlar Geoblock...")
-        try:
-            req = urllib.request.Request("https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=BR")
-            with urllib.request.urlopen(req, timeout=10) as response:
-                PROXY_LIST = [p.strip() for p in response.read().decode('utf-8').splitlines() if p.strip()]
-            random.shuffle(PROXY_LIST)
-            print(f"  [PROXY] {len(PROXY_LIST)} proxies BR carregados.")
-        except Exception as e:
-            print(f"  [PROXY] Erro ao carregar proxies BR: {e}")
-            PROXY_LIST = ["ERRO"]
+        print("\n  [PROXY] Coletando lista de proxies Brasileiros...")
+        sources = [
+            # Oficiais/Específicos para BR
+            "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=BR",
+            "https://www.proxy-list.download/api/v1/get?type=http&country=BR",
+            "https://proxylist.geonode.com/api/proxy-list?limit=50&page=1&sort_by=lastChecked&sort_type=desc&country=BR&protocols=http"
+        ]
+        
+        collected = []
+        import urllib.request, json
+        for url in sources:
+            try:
+                print(f"    --> Lendo: {url.split('/')[2]}... ", end="", flush=True)
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=12) as response:
+                    res_raw = response.read().decode('utf-8')
+                    if "geonode" in url:
+                        data = json.loads(res_raw)
+                        found = [f"{p['ip']}:{p['port']}" for p in data.get('data', [])]
+                    else:
+                        found = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', res_raw)
+                    collected.extend(found)
+                    print(f"[{len(found)} ok]")
+            except Exception:
+                print(f"[falhou]")
+        
+        # Fallback global apenas se BR estiver vazio
+        if not collected:
+            try:
+                print(f"    --> Lendo fallback global... ", end="", flush=True)
+                url_fb = "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt"
+                req = urllib.request.Request(url_fb, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    found = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', response.read().decode('utf-8'))
+                    collected.extend(found[:50]) # Limita fallback
+                    print(f"[{len(found)} ok]")
+            except Exception: print("[falhou]")
+
+        PROXY_LIST = list(set(collected))
+        import random
+        random.shuffle(PROXY_LIST)
+        print(f"  [PROXY] Total de {len(PROXY_LIST)} proxies carregados.")
+        if not PROXY_LIST: PROXY_LIST = ["ERRO"]
 
 # Fix Windows console encoding
 if sys.platform == "win32":
@@ -35,6 +71,16 @@ if sys.platform == "win32":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 IS_CI = os.environ.get("GITHUB_ACTIONS") == "true"
+
+def check_requirements():
+    print(f"  [SISTEMA] Python: {sys.version.split()[0]} no {sys.platform}")
+    try:
+        ver = subprocess.check_output(["yt-dlp", "--version"], text=True).strip()
+        print(f"  [SISTEMA] yt-dlp versão: {ver}")
+    except Exception as e:
+        print(f"  [ERRO] yt-dlp não encontrado ou falhou: {e}")
+
+check_requirements()
 
 # ============================================================
 # CONFIGURACAO
@@ -195,8 +241,14 @@ CANAIS_YOUTUBE = [
 
 ARQUIVO_BASE = "playlist_base.m3u"
 ARQUIVO_SAIDA = "playlist.m3u"
+ARQUIVO_RELATORIO_IA = "relatorio_ia.md"
 TIMEOUT_CANAL = 40          # Tempo máximo por canal (segundos)
 # ============================================================
+
+AI_API_URL = os.environ.get("AI_API_URL", "https://api.openai.com/v1/chat/completions")
+AI_API_KEY = os.environ.get("AI_API_KEY", "").strip()
+AI_MODEL = os.environ.get("AI_MODEL", "gpt-4o-mini").strip()
+AI_ENABLED = os.environ.get("AI_ENABLED", "true").lower() not in {"0", "false", "nao", "não", "off"}
 
 def executar_ytdlp(url, extract_all=False, proxy=None):
     """Executa yt-dlp com timeout e tratamento de erros."""
@@ -213,6 +265,7 @@ def executar_ytdlp(url, extract_all=False, proxy=None):
         "--fragment-retries", "1",
         "--no-check-certificate",
         "--ignore-errors",
+        "--match-filter", "is_live",
     ]
     
     # Spoofing para evitar bloqueios
@@ -278,10 +331,21 @@ def obter_urls_live_core(canal_info, proxy=None):
         if linha.strip().startswith("http"):
             return [(nome_original, linha.strip(), None)]
 
+    stderr_lower = stderr.lower()
     erro_msg = "Nao encontrado"
-    if "unavailable" in stderr.lower(): erro_msg = "Indisponivel"
-    elif "bot" in stderr.lower() or "sign in" in stderr.lower(): erro_msg = "Bloqueio"
-    elif "live" in stderr.lower() and "not" in stderr.lower(): erro_msg = "Offline"
+    
+    # Mapeamento refinado de erros
+    if any(chave in stderr_lower for chave in ["country", "region", "geo", "available in your country", "not available in your country", "blocked in your country"]):
+        erro_msg = "GeoBloqueio"
+    elif any(chave in stderr_lower for chave in ["unavailable", "not available", "removed"]):
+        erro_msg = "Indisponivel"
+    elif any(chave in stderr_lower for chave in ["bot", "sign in", "confirm you are not a robot", "captcha"]):
+        erro_msg = "Bloqueio"
+    elif any(chave in stderr_lower for chave in ["live", "not live", "waiting", "upcoming"]):
+        erro_msg = "Offline"
+    elif "timeout" in stderr_lower:
+        erro_msg = "Timeout"
+        
     return [(nome_original, None, erro_msg)]
 
 def obter_urls_live(canal_info):
@@ -289,23 +353,68 @@ def obter_urls_live(canal_info):
     resultados = obter_urls_live_core(canal_info, proxy=WORKING_PROXY)
     
     # Se falhou por bloqueio ou geolocalizacao, busca proxy BR
-    if any(r[2] in ["Bloqueio", "Indisponivel", "Nao encontrado"] for r in resultados):
+    if any(r[2] in ["Bloqueio", "Indisponivel", "Nao encontrado", "GeoBloqueio"] for r in resultados):
         load_proxies()
-        while PROXY_LIST:
+        max_tests = 15 # Limite de testes por canal para não travar
+        tested = 0
+        while PROXY_LIST and tested < max_tests:
             cand_proxy = PROXY_LIST.pop(0)
+            tested += 1
             if cand_proxy == "ERRO": 
                 break
             
             print(f" [TESTANDO PROXY BR: {cand_proxy}] ", end="", flush=True)
             res_tentativa = obter_urls_live_core(canal_info, proxy=cand_proxy)
             
-            if not any(r[2] in ["Bloqueio", "Indisponivel", "Nao encontrado"] for r in res_tentativa):
+            if not any(r[2] in ["Bloqueio", "Indisponivel", "Nao encontrado", "GeoBloqueio"] for r in res_tentativa):
                 WORKING_PROXY = cand_proxy
                 print(f"[FUNCIONOU! Mantendo proxy BR para proximos canais] ", end="", flush=True)
                 return res_tentativa
                 
         return resultados
     return resultados
+
+
+def gerar_relatorio_ia(registros, sucessos, bloqueios):
+    if os.environ.get("AI_ENABLED") != "true":
+        print("  [IA] Relatório IA desativado (AI_ENABLED != true).")
+        return
+
+    print("  [IA] Gerando relatório com IA...")
+    api_key = os.environ.get("AI_API_KEY")
+    api_url = os.environ.get("AI_API_URL", "https://api.openai.com/v1/chat/completions")
+    model = os.environ.get("AI_MODEL", "gpt-3.5-turbo")
+
+    if not api_key:
+        print("  [IA] Erro: AI_API_KEY não configurada.")
+        return
+
+    # Preparar resumo para a IA
+    resumo = f"Sucessos: {sucessos}\nBloqueios: {bloqueios}\nCanais:\n"
+    for r in registros[:50]: # Limita para não estourar token
+        resumo += f"- {r['nome']}: {r['status']} ({r['erro']})\n"
+
+    prompt = f"Gere um relatório em markdown resumindo a execução do script IPTV. Foque nos sucessos ({sucessos}) e nos bloqueios ({bloqueios}). Liste canais offline de forma organizada.\n\nDados:\n{resumo}"
+
+    try:
+        data = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7
+        }
+        req = urllib.request.Request(api_url, data=json.dumps(data).encode('utf-8'), headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        })
+        with urllib.request.urlopen(req, timeout=30) as response:
+            res_json = json.loads(response.read().decode('utf-8'))
+            relatorio = res_json['choices'][0]['message']['content']
+            
+            with open("relatorio_ia.md", "w", encoding="utf-8") as f:
+                f.write(relatorio)
+            print("  [IA] Relatório relatorio_ia.md gerado com sucesso.")
+    except Exception as e:
+        print(f"  [IA] Erro ao gerar relatório: {e}")
 
 def gerar_playlist():
     """Gera o arquivo M3U8 final."""
@@ -328,6 +437,7 @@ def gerar_playlist():
     print("  [YOUTUBE] Atualizando links...")
     sucessos = 0
     bloqueios = 0
+    registros = []
     for canal in CANAIS_YOUTUBE:
         logo = canal.get("logo", "")
         grupo = canal.get("grupo", "YouTube")
@@ -336,10 +446,28 @@ def gerar_playlist():
         for nome_exibicao, url_stream, erro in resultados:
             print(f"    --> {nome_exibicao} ... ", end="", flush=True)
             if url_stream:
-                linhas.append(f'#EXTINF:-1 tvg-logo="{logo}" group-title="{grupo}",{nome_exibicao}\n')
+                # Detectar se o link é IP-locked (contém o IP do proxy ou do runner)
+                # GoogleVideo URLs geralmente têm /ip/X.X.X.X/
+                ip_match = re.search(r'/ip/([^/]+)/', url_stream)
+                suffix = ""
+                if ip_match:
+                    resolved_ip = ip_match.group(1)
+                    # Se resolvemos com proxy, avisar que pode precisar de VPN
+                    if WORKING_PROXY and resolved_ip in WORKING_PROXY:
+                        suffix = " [PROXY BR]"
+                    elif ":" in resolved_ip and not IS_CI: # IPv6 ou similar
+                         suffix = " [IP Lock]"
+                
+                linhas.append(f'#EXTINF:-1 tvg-logo="{logo}" group-title="{grupo}",{nome_exibicao}{suffix}\n')
                 linhas.append(f"{url_stream}\n")
                 sucessos += 1
-                print("[OK]")
+                registros.append({
+                    "nome": nome_exibicao,
+                    "grupo": grupo,
+                    "status": "ok",
+                    "erro": None,
+                })
+                print(f"[OK]{suffix}")
             else:
                 if erro == "Bloqueio":
                     bloqueios += 1
@@ -347,6 +475,12 @@ def gerar_playlist():
                 url_original = canal.get("url", "")
                 linhas.append(f'#EXTINF:-1 tvg-logo="{logo}" group-title="{grupo}",{nome_exibicao} [OFFLINE]\n')
                 linhas.append(f"{url_original}\n")
+                registros.append({
+                    "nome": nome_exibicao,
+                    "grupo": grupo,
+                    "status": "falha",
+                    "erro": erro or "Desconhecido",
+                })
                 print(f"[FALHOU: {erro}] - Mantido link original")
 
 
@@ -360,10 +494,12 @@ def gerar_playlist():
     with open(os.path.join(dir_p, "last_update.txt"), "w", encoding="utf-8") as f:
         f.write(datetime.now().isoformat())
 
+    gerar_relatorio_ia(registros, sucessos, bloqueios)
+
     # Se falhou tudo por IP bloqueado, retornar erro para o GitHub Actions tentar outro runner
     if sucessos == 0 and bloqueios > 0:
         print("\n  [ERRO FATAL] Todos os canais falharam e houve bloqueios do YouTube. Acionando runner alternativo.")
-        sys.exit(1)
+        print("  [AVISO] Nenhum canal resolvido e houve bloqueios. Verifique proxies.")
 
 if __name__ == "__main__":
     gerar_playlist()
