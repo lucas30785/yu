@@ -247,6 +247,34 @@ ARQUIVO_RELATORIO_IA = "relatorio_ia.md"
 TIMEOUT_CANAL = 40          # Tempo máximo por canal (segundos)
 # ============================================================
 
+def carregar_urls_antigas(caminho_playlist):
+    """Carrega a última URL válida de canais dinâmicos da playlist anterior."""
+    urls_antigas = {}
+    if not os.path.exists(caminho_playlist):
+        return urls_antigas
+
+    try:
+        with open(caminho_playlist, "r", encoding="utf-8") as f:
+            linhas = f.readlines()
+
+        for i in range(len(linhas) - 1):
+            linha_info = linhas[i].strip()
+            linha_url = linhas[i + 1].strip()
+
+            if not linha_info.startswith("#EXTINF:") or not linha_url.startswith("http"):
+                continue
+
+            if "manifest.googlevideo.com" not in linha_url:
+                continue
+
+            nome = linha_info.split(",", 1)[-1].strip()
+            nome = re.sub(r"\s+\[(?:PROXY BR|IP Lock)\]$", "", nome)
+            urls_antigas[nome] = linha_url
+    except Exception as e:
+        print(f"  [AVISO] Não foi possível carregar fallback da playlist anterior: {e}")
+
+    return urls_antigas
+
 AI_API_URL = os.environ.get("AI_API_URL", "https://api.openai.com/v1/chat/completions")
 AI_API_KEY = os.environ.get("AI_API_KEY", "").strip()
 AI_MODEL = os.environ.get("AI_MODEL", "gpt-4o-mini").strip()
@@ -428,6 +456,10 @@ def gerar_playlist():
     # 1. Base Estática
     dir_p = os.path.dirname(os.path.abspath(__file__))
     c_base = os.path.join(dir_p, ARQUIVO_BASE)
+    c_saida = os.path.join(dir_p, ARQUIVO_SAIDA)
+    urls_antigas = carregar_urls_antigas(c_saida)
+    if urls_antigas:
+        print(f"  [FALLBACK] {len(urls_antigas)} URLs antigas carregadas da playlist anterior.")
     if os.path.exists(c_base):
         print(f"  [BASE] Lendo {ARQUIVO_BASE}...")
         with open(c_base, "r", encoding="utf-8") as f:
@@ -474,6 +506,19 @@ def gerar_playlist():
                 })
                 print(f"[OK]{suffix}")
             else:
+                fallback_url = urls_antigas.get(nome_exibicao)
+                if fallback_url:
+                    linhas.append(f'#EXTINF:-1 tvg-logo="{logo}" group-title="{grupo}",{nome_exibicao} [FALLBACK]\n')
+                    linhas.append(f"{fallback_url}\n")
+                    registros.append({
+                        "nome": nome_exibicao,
+                        "grupo": grupo,
+                        "status": "fallback",
+                        "erro": erro or "Desconhecido",
+                    })
+                    print(f"[FALLBACK: {erro}] - reutilizando última URL válida")
+                    continue
+
                 if erro == "Bloqueio":
                     bloqueios += 1
                 registros.append({
@@ -486,7 +531,6 @@ def gerar_playlist():
 
 
     # 3. Salvar
-    c_saida = os.path.join(dir_p, ARQUIVO_SAIDA)
     with open(c_saida, "w", encoding="utf-8") as f:
         f.writelines(linhas)
     print(f"\n  [SUCESSO] Playlist gerada: {ARQUIVO_SAIDA}")
@@ -496,7 +540,9 @@ def gerar_playlist():
         f.write(datetime.now().isoformat())
 
     falhas = len([r for r in registros if r["status"] == "falha"])
+    fallbacks = len([r for r in registros if r["status"] == "fallback"])
     print(f"  [RESUMO] Canais YouTube resolvidos: {sucessos}")
+    print(f"  [RESUMO] Canais com fallback reaproveitado: {fallbacks}")
     print(f"  [RESUMO] Canais YouTube com falha: {falhas}")
     print(f"  [RESUMO] Bloqueios detectados: {bloqueios}")
 
