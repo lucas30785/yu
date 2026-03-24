@@ -212,6 +212,20 @@ CANAIS_YOUTUBE = [
         "grupo": "ABERTO",
     },
     {
+        "nome": "Canal do Benja",
+        "url": "https://www.youtube.com/@canaldobenjaoficial/streams",
+        "logo": "https://yt3.googleusercontent.com/ytc/AIdro_nF5zvG3fTQ9m6sYwBfG0lVx0m5iDqgR1rQj0w2nA=s176-c-k-c0x00ffffff-no-rj",
+        "grupo": "Esportes",
+        "multi": True,
+    },
+    {
+        "nome": "Confederação Brasileira de Futebol",
+        "url": "https://www.youtube.com/@brasil/streams",
+        "logo": "https://yt3.googleusercontent.com/ytc/AIdro_n0D1L2B3C4D5E6F7G8H9I0J1K2L3M4N5O6P7Q8R9=s176-c-k-c0x00ffffff-no-rj",
+        "grupo": "Esportes",
+        "multi": True,
+    },
+    {
         "nome": "XSports",
         "url": "https://www.youtube.com/@xsports.brasil/streams",
         "logo": "https://yt3.googleusercontent.com/ytc/AIdro_k6V10M-C6qI29L-a6-Q4E-J9k08J73NnQO5yT0d5o=s176-c-k-c0x00ffffff-no-rj",
