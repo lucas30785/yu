@@ -471,17 +471,13 @@ def gerar_playlist():
             else:
                 if erro == "Bloqueio":
                     bloqueios += 1
-                # Fallback: Mantém o canal com link original do YouTube se a resolução falhar
-                url_original = canal.get("url", "")
-                linhas.append(f'#EXTINF:-1 tvg-logo="{logo}" group-title="{grupo}",{nome_exibicao} [OFFLINE]\n')
-                linhas.append(f"{url_original}\n")
                 registros.append({
                     "nome": nome_exibicao,
                     "grupo": grupo,
                     "status": "falha",
                     "erro": erro or "Desconhecido",
                 })
-                print(f"[FALHOU: {erro}] - Mantido link original")
+                print(f"[FALHOU: {erro}] - Canal não adicionado à playlist")
 
 
     # 3. Salvar
