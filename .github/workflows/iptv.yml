@@ -33,6 +33,7 @@ jobs:
           AI_API_URL: ${{ secrets.AI_API_URL }}
           AI_MODEL: ${{ secrets.AI_MODEL }}
           AI_ENABLED: true
+          USE_PROXIES_IN_CI: false
         run: python gerar_m3u8.py
       - name: Commit e Push
         shell: bash
@@ -67,6 +68,7 @@ jobs:
           AI_API_URL: ${{ secrets.AI_API_URL }}
           AI_MODEL: ${{ secrets.AI_MODEL }}
           AI_ENABLED: true
+          USE_PROXIES_IN_CI: false
         run: python gerar_m3u8.py
       - name: Commit e Push
         shell: bash
@@ -101,6 +103,7 @@ jobs:
           AI_API_URL: ${{ secrets.AI_API_URL }}
           AI_MODEL: ${{ secrets.AI_MODEL }}
           AI_ENABLED: true
+          USE_PROXIES_IN_CI: false
         run: python gerar_m3u8.py
       - name: Commit e Push
         shell: bash
