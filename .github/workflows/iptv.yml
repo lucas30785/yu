@@ -12,82 +12,14 @@ permissions:
   contents: write
 
 jobs:
-  run-windows:
-    timeout-minutes: 45
-    runs-on: windows-latest
-    steps:
-      - name: Baixar repositório
-        uses: actions/checkout@v4
-      - name: Configurar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Instalar dependências
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install --upgrade yt-dlp
-      - name: Gerar playlist .m3u
-        env:
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          AI_API_URL: ${{ secrets.AI_API_URL }}
-          AI_MODEL: ${{ secrets.AI_MODEL }}
-          AI_ENABLED: true
-          USE_PROXIES_IN_CI: false
-        run: python gerar_m3u8.py
-      - name: Commit e Push
-        shell: bash
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add playlist.m3u last_update.txt
-          test -f relatorio_ia.md && git add relatorio_ia.md || true
-          git commit -m "Playlist IPTV atualizada (Windows) [Bot]" || echo "Nenhuma alteração"
-          git push
-
-  run-macos:
-    needs: run-windows
-    if: failure()
-    timeout-minutes: 45
-    runs-on: macos-latest
-    steps:
-      - name: Baixar repositório
-        uses: actions/checkout@v4
-      - name: Configurar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Instalar dependências
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install --upgrade yt-dlp
-      - name: Gerar playlist .m3u
-        env:
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          AI_API_URL: ${{ secrets.AI_API_URL }}
-          AI_MODEL: ${{ secrets.AI_MODEL }}
-          AI_ENABLED: true
-          USE_PROXIES_IN_CI: false
-        run: python gerar_m3u8.py
-      - name: Commit e Push
-        shell: bash
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add playlist.m3u last_update.txt
-          test -f relatorio_ia.md && git add relatorio_ia.md || true
-          git commit -m "Playlist IPTV atualizada (macOS) [Bot]" || echo "Nenhuma alteração"
-          git push
-
   run-ubuntu:
-    needs: run-macos
-    if: failure()
-    timeout-minutes: 45
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
@@ -105,12 +37,34 @@ jobs:
           AI_ENABLED: true
           USE_PROXIES_IN_CI: false
         run: python gerar_m3u8.py
+      - name: Salvar relatório de execução
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Resumo da execução"
+            echo ""
+            echo "- Runner: ubuntu-latest"
+            echo "- Data UTC: $(date -u +"%Y-%m-%d %H:%M:%S")"
+            echo "- Último update local:"
+            test -f last_update.txt && cat last_update.txt || echo "last_update.txt não encontrado"
+            echo ""
+            echo "### Arquivos gerados"
+            ls -la
+          } > workflow_report.md
+      - name: Upload relatório
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-report-ubuntu
+          path: workflow_report.md
+          if-no-files-found: warn
       - name: Commit e Push
         shell: bash
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add playlist.m3u last_update.txt
+          git add playlist.m3u last_update.txt workflow_report.md
           test -f relatorio_ia.md && git add relatorio_ia.md || true
           git commit -m "Playlist IPTV atualizada (Ubuntu) [Bot]" || echo "Nenhuma alteração"
           git push
