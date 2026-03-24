@@ -71,6 +71,7 @@ if sys.platform == "win32":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 IS_CI = os.environ.get("GITHUB_ACTIONS") == "true"
+MAX_PROXY_TESTS = 2 if IS_CI else 15
 
 def check_requirements():
     print(f"  [SISTEMA] Python: {sys.version.split()[0]} no {sys.platform}")
@@ -355,9 +356,8 @@ def obter_urls_live(canal_info):
     # Se falhou por bloqueio ou geolocalizacao, busca proxy BR
     if any(r[2] in ["Bloqueio", "Indisponivel", "Nao encontrado", "GeoBloqueio"] for r in resultados):
         load_proxies()
-        max_tests = 15 # Limite de testes por canal para não travar
         tested = 0
-        while PROXY_LIST and tested < max_tests:
+        while PROXY_LIST and tested < MAX_PROXY_TESTS:
             cand_proxy = PROXY_LIST.pop(0)
             tested += 1
             if cand_proxy == "ERRO": 
@@ -496,10 +496,11 @@ def gerar_playlist():
 
     gerar_relatorio_ia(registros, sucessos, bloqueios)
 
-    # Se falhou tudo por IP bloqueado, retornar erro para o GitHub Actions tentar outro runner
+    # Em CI, evita falha total do workflow por bloqueios do YouTube/proxies.
+    # A playlist continua sendo gerada com fallback para os links originais.
     if sucessos == 0 and bloqueios > 0:
-        print("\n  [ERRO FATAL] Todos os canais falharam e houve bloqueios do YouTube. Acionando runner alternativo.")
-        print("  [AVISO] Nenhum canal resolvido e houve bloqueios. Verifique proxies.")
+        print("\n  [AVISO] Todos os canais dinâmicos falharam e houve bloqueios do YouTube.")
+        print("  [AVISO] A playlist foi gerada com fallback para os links originais, sem interromper o workflow.")
 
 if __name__ == "__main__":
     gerar_playlist()

@@ -1,5 +1,8 @@
 name: Atualizar Playlist IPTV
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 on:
   schedule:
     - cron: "0 * * * *"   # roda todo início de hora
@@ -10,6 +13,7 @@ permissions:
 
 jobs:
   run-windows:
+    timeout-minutes: 45
     runs-on: windows-latest
     steps:
       - name: Baixar repositório
@@ -43,6 +47,7 @@ jobs:
   run-macos:
     needs: run-windows
     if: failure()
+    timeout-minutes: 45
     runs-on: macos-latest
     steps:
       - name: Baixar repositório
@@ -76,6 +81,7 @@ jobs:
   run-ubuntu:
     needs: run-macos
     if: failure()
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - name: Baixar repositório
