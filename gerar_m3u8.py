@@ -101,6 +101,13 @@ CANAIS_YOUTUBE = [
         "grupo": "PE",
     },
     {
+        "nome": "TV Jornal SBT Recife",
+        "url": "https://www.youtube.com/@TVJornalSBTRecife/streams",
+        "logo": "https://imgmxa.net/sbt.png",
+        "grupo": "PE",
+        "multi": True,
+    },
+    {
         "nome": "Canal Rural",
         "url": "https://www.youtube.com/watch?v=hmUCjG_P0xg",
         "logo": "https://upload.wikimedia.org/wikipedia/pt/thumb/a/a3/Canal_Rural.png/300px-Canal_Rural.png",
@@ -186,10 +193,11 @@ CANAIS_YOUTUBE = [
         "grupo": "Catolico",
     },
     {
-        "nome": "Vatican News",
-        "url": "https://www.youtube.com/@VaticanNewsPT/live",
+        "nome": "Vatican News - Português",
+        "url": "https://www.youtube.com/@VaticanNewsPT/streams",
         "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Vatican_News.svg/330px-Vatican_News.svg.png",
         "grupo": "Catolico",
+        "multi": True,
     },
     {
         "nome": "Canal Agroplus",
@@ -204,7 +212,7 @@ CANAIS_YOUTUBE = [
         "grupo": "ABERTO",
     },
     {
-        "nome": "XSPORT",
+        "nome": "XSports",
         "url": "https://www.youtube.com/@xsports.brasil/streams",
         "logo": "https://yt3.googleusercontent.com/ytc/AIdro_k6V10M-C6qI29L-a6-Q4E-J9k08J73NnQO5yT0d5o=s176-c-k-c0x00ffffff-no-rj",
         "grupo": "Esportes",
@@ -233,7 +241,7 @@ CANAIS_YOUTUBE = [
     },
     {
         "nome": "Canal GOAT",
-        "url": "https://www.youtube.com/@maiscanalgoatbr/streams",
+        "url": "https://www.youtube.com/@canalgoatbr/streams",
         "logo": "https://yt3.googleusercontent.com/ytc/AIdro_k4_6X2D8O3R0Q7V5H9L2_U0c9P3A8_8h9e5E7A3_1G=s176-c-k-c0x00ffffff-no-rj",
         "grupo": "Esportes",
         "multi": True,
